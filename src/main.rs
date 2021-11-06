@@ -16,11 +16,6 @@ struct Flag {
 
 // Define all the flags
 lazy_static! {
-    // we wanted a "global", without having a global.
-    // since "globals are bad", rust makes it tricky.
-    // Question 1: Why does `const` not work here?
-    // Question 2: What is the difference between a const and a static?
-    // Question 3: Why does a vanilla static not work here without the lazy_static crate?
     static ref FLAGS: Vec<Flag> = vec![
         Flag {
             name: "help".to_string(),
