@@ -10,7 +10,7 @@ fn s(s: &str) -> String {
 
 /// Parses the binary absolute path and returns the binary name
 fn parse_bin(bin_path: &str) -> &str {
-    bin_path.split("/").last().unwrap()
+    bin_path.split('/').last().unwrap()
 }
 
 #[derive(Debug, Clone)]
@@ -60,23 +60,23 @@ lazy_static! {
 fn gen_usage(bin_name: &str) -> String {
     let topline = format!("{} [options] <parameter>\n", bin_name);
 
-    let mut secondline = format!("\nOPTIONS:\n");
+    let mut secondline = s("\nOPTIONS:\n");
     for flag in FLAGS.to_vec() {
         secondline.push_str(format!("\t{}: \t {}\n", flag.name, flag.desc).as_str());
     }
     format!("{}{}", topline, secondline)
 }
 
-fn parse_flags(args: &Vec<String>) -> Vec<&Flag> {
+fn parse_flags(args: &[String]) -> Vec<&Flag> {
     FLAGS.iter().filter(|f| args.contains(&f.name)).collect()
 }
 
 /// Parses the theme name from the arguments, ignoring all the options
-fn parse_theme(args: &Vec<String>, flags: Vec<&Flag>) -> String {
+fn parse_theme(args: &[String], flags: Vec<&Flag>) -> String {
     // Lets ignore the option flag name strings (--foo) - we already have those
     let fnames: Vec<&String> = flags.iter().map(|f| &f.name).collect();
     let nonflags = args
-        .into_iter()
+        .iter()
         .filter(|arg| !&fnames.contains(arg))
         .collect::<Vec<&String>>();
 
@@ -103,9 +103,9 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     let bin_name = parse_bin(&args[0]);
     if args.len() == 1
-        || (&args[1] == &HELP_FLAG.name || &args[1] == HELP_FLAG.short.as_ref().unwrap())
+        || (args[1] == HELP_FLAG.name || &args[1] == HELP_FLAG.short.as_ref().unwrap())
     {
-        let usage = gen_usage(&bin_name);
+        let usage = gen_usage(bin_name);
         println!("Usage:\n\t{}", usage);
     } else {
         let flags = parse_flags(&args);
@@ -114,22 +114,21 @@ fn main() {
         let cmds: Result<Vec<Command>, String> = flags
             .clone()
             .into_iter()
-            .map(|parsed_flag| match parsed_flag {
-                Flag { name, .. } => {
-                    if name == &LIST_FLAG.name {
-                        Ok(Command::ListThemes)
-                    } else if name == &SWITCH_FLAG.name {
-                        let theme = parse_theme(&args, flags.clone());
-                        if theme.is_empty() {
-                            Err(s("No Theme Provided"))
-                        } else {
-                            Ok(Command::SwitchTheme(theme))
-                        }
-                    } else if name == &CURR_FLAG.name {
-                        Ok(Command::CurrentTheme)
+            .map(|parsed_flag| {
+                let Flag { name, .. } = parsed_flag;
+                if name == &LIST_FLAG.name {
+                    Ok(Command::ListThemes)
+                } else if name == &SWITCH_FLAG.name {
+                    let theme = parse_theme(&args, flags.clone());
+                    if theme.is_empty() {
+                        Err(s("No Theme Provided"))
                     } else {
-                        Ok(Command::Noop)
+                        Ok(Command::SwitchTheme(theme))
                     }
+                } else if name == &CURR_FLAG.name {
+                    Ok(Command::CurrentTheme)
+                } else {
+                    Ok(Command::Noop)
                 }
             })
             .collect::<Result<Vec<Command>, String>>();
