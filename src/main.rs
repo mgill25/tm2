@@ -92,6 +92,7 @@ enum Command {
     ListThemes,
     CurrentTheme,
     SwitchTheme(String),
+    Help,
     Noop,
 }
 
@@ -116,19 +117,20 @@ fn main() {
             .into_iter()
             .map(|parsed_flag| {
                 let Flag { name, .. } = parsed_flag;
-                if name == &LIST_FLAG.name {
-                    Ok(Command::ListThemes)
-                } else if name == &SWITCH_FLAG.name {
-                    let theme = parse_theme(&args, flags.clone());
-                    if theme.is_empty() {
-                        Err(s("No Theme Provided"))
-                    } else {
-                        Ok(Command::SwitchTheme(theme))
+
+                match name.as_str() {
+                    "--list" => Ok(Command::ListThemes),
+                    "--current" => Ok(Command::CurrentTheme),
+                    "--help" => Ok(Command::Help),
+                    "--switch" => {
+                        let theme = parse_theme(&args, flags.clone());
+                        if theme.is_empty() {
+                            Err(s("No Theme Provided"))
+                        } else {
+                            Ok(Command::SwitchTheme(theme))
+                        }
                     }
-                } else if name == &CURR_FLAG.name {
-                    Ok(Command::CurrentTheme)
-                } else {
-                    Ok(Command::Noop)
+                    _ => Ok(Command::Noop),
                 }
             })
             .collect::<Result<Vec<Command>, String>>();
