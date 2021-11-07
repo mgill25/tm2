@@ -96,9 +96,16 @@ enum Command {
     Noop,
 }
 
-// enum ExtraOption {
-//     WithVim,
-// }
+#[derive(Debug)]
+enum CommandOption {
+    SwitchWithVim,
+}
+
+#[derive(Debug)]
+struct Instruction {
+    command: Command,
+    option: Option<CommandOption>,
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -112,28 +119,43 @@ fn main() {
         let flags = parse_flags(&args);
         // Parse all flags and create a vector of all Command enum variants
 
-        let cmds: Result<Vec<Command>, String> = flags
+        let cmds: Result<Vec<Instruction>, String> = flags
             .clone()
             .into_iter()
             .map(|parsed_flag| {
                 let Flag { name, .. } = parsed_flag;
 
                 match name.as_str() {
-                    "--list" => Ok(Command::ListThemes),
-                    "--current" => Ok(Command::CurrentTheme),
-                    "--help" => Ok(Command::Help),
+                    "--list" => Ok(Instruction {
+                        command: Command::ListThemes,
+                        option: None,
+                    }),
+                    "--current" => Ok(Instruction {
+                        command: Command::CurrentTheme,
+                        option: None,
+                    }),
+                    "--help" => Ok(Instruction {
+                        command: Command::Help,
+                        option: None,
+                    }),
                     "--switch" => {
                         let theme = parse_theme(&args, flags.clone());
                         if theme.is_empty() {
                             Err(s("No Theme Provided"))
                         } else {
-                            Ok(Command::SwitchTheme(theme))
+                            Ok(Instruction {
+                                command: Command::SwitchTheme(theme),
+                                option: None, // TODO: --with-vim should be parsed and added as an option here.
+                            })
                         }
                     }
-                    _ => Ok(Command::Noop),
+                    _ => Ok(Instruction {
+                        command: Command::Noop,
+                        option: None,
+                    }),
                 }
             })
-            .collect::<Result<Vec<Command>, String>>();
+            .collect::<Result<Vec<Instruction>, String>>();
 
         // Now that we have a bunch of commands, we can execute them,
         // or return with an error when that is suitable
