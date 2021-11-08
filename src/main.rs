@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::env;
 
 #[macro_use]
@@ -75,6 +76,7 @@ fn parse_flags(args: &[String]) -> Vec<&Flag> {
 fn parse_theme(args: &[String], flags: Vec<&Flag>) -> String {
     // Lets ignore the option flag name strings (--foo) - we already have those
     let fnames: Vec<&String> = flags.iter().map(|f| &f.name).collect();
+
     let nonflags = args
         .iter()
         .filter(|arg| !&fnames.contains(arg))
@@ -103,7 +105,7 @@ enum CommandOption {
 
 #[derive(Debug)]
 struct Instruction {
-    command: Command,
+    command: Option<Command>,
     option: Option<CommandOption>,
 }
 
@@ -118,53 +120,53 @@ fn main() {
     } else {
         let flags = parse_flags(&args);
         // Parse all flags and create a vector of all Command enum variants
+        let instruction = Instruction {
+            command: None,
+            option: None,
+        };
 
-        let cmds: Result<Vec<Instruction>, String> = flags
+        let final_instruction: Result<Instruction, String> = flags
             .clone()
             .into_iter()
-            .map(|parsed_flag| {
+            .map(|x| Ok(x))
+            .fold_ok(instruction, |mut instruction_acc, parsed_flag| {
                 let Flag { name, .. } = parsed_flag;
-
                 match name.as_str() {
-                    "--list" => Ok(Instruction {
-                        command: Command::ListThemes,
-                        option: None,
-                    }),
-                    "--current" => Ok(Instruction {
-                        command: Command::CurrentTheme,
-                        option: None,
-                    }),
-                    "--help" => Ok(Instruction {
-                        command: Command::Help,
-                        option: None,
-                    }),
+                    "--list" => instruction_acc.command = Some(Command::ListThemes),
+                    "--current" => instruction_acc.command = Some(Command::CurrentTheme),
+                    "--help" => instruction_acc.command = Some(Command::Help),
                     "--switch" => {
                         let theme = parse_theme(&args, flags.clone());
-                        if theme.is_empty() {
-                            Err(s("No Theme Provided"))
+                        if !theme.is_empty() {
+                            instruction_acc.command = Some(Command::SwitchTheme(theme))
                         } else {
-                            Ok(Instruction {
-                                command: Command::SwitchTheme(theme),
-                                option: None, // TODO: --with-vim should be parsed and added as an option here.
-                            })
+                            println!("ERROR: No theme found!");
                         }
                     }
-                    _ => Ok(Instruction {
-                        command: Command::Noop,
-                        option: None,
-                    }),
-                }
-            })
-            .collect::<Result<Vec<Instruction>, String>>();
+                    "--with-vim" => {
+                        // TODO: Fix cases like Instruction { command: Some(ListThemes), option: Some(SwitchWithVim) }
+                        instruction_acc.option = Some(CommandOption::SwitchWithVim);
+                    }
+                    _ => {
+                        if let Some(_) = instruction_acc.command {
+                            // Do nothing if we already found a command
+                        } else {
+                            // No command found so far, keep it a Noop
+                            instruction_acc.command = Some(Command::Noop)
+                        }
+                    }
+                };
+                instruction_acc
+            });
 
         // Now that we have a bunch of commands, we can execute them,
         // or return with an error when that is suitable
-        match cmds {
+        match final_instruction {
             Err(err) => {
                 println!("Error = {:?}", err);
             }
-            Ok(commands) => {
-                println!("commands = {:?}", commands);
+            Ok(ins) => {
+                println!("Instruction = {:?}", ins);
             }
         }
     }
