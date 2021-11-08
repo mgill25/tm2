@@ -128,7 +128,7 @@ fn main() {
         let final_instruction: Result<Instruction, String> = flags
             .clone()
             .into_iter()
-            .map(|x| Ok(x))
+            .map(Ok)
             .fold_ok(instruction, |mut instruction_acc, parsed_flag| {
                 let Flag { name, .. } = parsed_flag;
                 match name.as_str() {
@@ -148,7 +148,7 @@ fn main() {
                         instruction_acc.option = Some(CommandOption::SwitchWithVim);
                     }
                     _ => {
-                        if let Some(_) = instruction_acc.command {
+                        if instruction_acc.command.is_some() {
                             // Do nothing if we already found a command
                         } else {
                             // No command found so far, keep it a Noop
