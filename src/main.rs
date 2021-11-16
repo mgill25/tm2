@@ -3,6 +3,7 @@ use std::env;
 #[macro_use]
 extern crate lazy_static;
 
+mod commands;
 mod instructions;
 
 // *Super* Convenient function
@@ -58,17 +59,6 @@ lazy_static! {
     static ref SWITCH_FLAG: &'static Flag = &FLAGS[4];
 }
 
-/// Generate the usage string for the tool
-fn gen_usage(bin_name: &str) -> String {
-    let topline = format!("{} [options] <parameter>\n", bin_name);
-
-    let mut secondline = s("\nOPTIONS:\n");
-    for flag in FLAGS.to_vec() {
-        secondline.push_str(format!("\t{}: \t {}\n", flag.name, flag.desc).as_str());
-    }
-    format!("{}{}", topline, secondline)
-}
-
 pub fn parse_flags(args: &[String]) -> Vec<&Flag> {
     FLAGS.iter().filter(|f| args.contains(&f.name)).collect()
 }
@@ -93,17 +83,14 @@ pub fn parse_theme(args: &[String], flags: Vec<&Flag>) -> String {
 fn main() {
     let args: Vec<String> = env::args().collect();
     let bin_name = parse_bin(&args[0]);
-    if args.len() == 1
-        || (args[1] == HELP_FLAG.name || &args[1] == HELP_FLAG.short.as_ref().unwrap())
-    {
-        let usage = gen_usage(bin_name);
-        println!("Usage:\n\t{}", usage);
+    if args.len() == 1 {
+        commands::cmd_print_help(bin_name.to_string());
     } else {
-        let instruction = instructions::parse_instructions(&args);
+        let instruction = instructions::parse_instructions(&args, bin_name);
         match instruction {
             Err(err) => println!("ERROR: {}", err),
             Ok(ins) => {
-                println!("INS: {:?}", ins);
+                commands::handle(ins);
             }
         }
     }
