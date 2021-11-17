@@ -83,15 +83,11 @@ pub fn parse_theme(args: &[String], flags: Vec<&Flag>) -> String {
 fn main() {
     let args: Vec<String> = env::args().collect();
     let bin_name = parse_bin(&args[0]);
-    if args.len() == 1 {
-        commands::cmd_print_help(bin_name.to_string());
-    } else {
-        let instruction = instructions::parse_instructions(&args, bin_name);
-        match instruction {
-            Err(err) => println!("ERROR: {}", err),
-            Ok(ins) => {
-                commands::handle(ins);
-            }
+    let instruction = instructions::parse_instructions(&args, bin_name);
+    match instruction {
+        Err(err) => println!("ERROR: {}", err),
+        Ok(ins) => {
+            commands::handle(ins);
         }
     }
 }
