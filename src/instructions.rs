@@ -74,54 +74,60 @@ pub fn parse_instructions(args: &[String], bin_name: &str) -> Result<Instruction
         })
     } else {
         match parse_flags(&args) {
-            Ok(flags) => {
-                // let flags: Vec<&Flag> = parse_flags(&args);
-                // Parse all flags and create a vector of all Command enum variants
-                let instruction = Instruction {
-                    command: None,
-                    option: None,
-                };
-
-                let final_instruction: Result<Instruction, String> = flags
-                    .clone()
-                    .into_iter()
-                    .map(Ok)
-                    .fold_ok(instruction, |mut instruction_acc, parsed_flag| {
-                        let Flag { name, .. } = parsed_flag;
-                        println!("Considering: {}", &name);
-                        match name.as_str() {
-                            "--list" => instruction_acc.command = Some(Command::ListThemes),
-                            "--current" => instruction_acc.command = Some(Command::CurrentTheme),
-                            "--help" => {
-                                instruction_acc.command = Some(Command::Help(bin_name.to_string()))
-                            }
-                            "--switch" => {
-                                let theme = parse_theme(&args, flags.clone());
-                                if !theme.is_empty() {
-                                    instruction_acc.command = Some(Command::SwitchTheme(theme))
-                                } else {
-                                    println!("ERROR: No theme found!");
-                                }
-                            }
-                            "--with-vim" => {
-                                // TODO: Fix cases like Instruction { command: Some(ListThemes), option: Some(SwitchWithVim) }
-                                instruction_acc.option = Some(CommandOption::SwitchWithVim);
-                            }
-                            _ => {
-                                if instruction_acc.command.is_some() {
-                                    // Do nothing if we already found a command
-                                } else {
-                                    println!("Should we do nothing or print an Error here?");
-                                    // No command found so far, keep it a Noop
-                                    instruction_acc.command = Some(Command::Noop)
-                                }
-                            }
-                        };
-                        instruction_acc
-                    });
-                final_instruction
-            }
+            Ok(flags) => build_instruction(&args, &bin_name, flags),
             Err(e) => Err(e),
         }
     }
+}
+
+/// Build an Instruction
+/// This uses all the information we have about the Flags we have parsed
+/// and looks at any additional things we need from the args (like values and options)
+/// and builds out an Instruction
+fn build_instruction(
+    args: &[String],
+    bin_name: &str,
+    flags: Vec<&Flag>,
+) -> Result<Instruction, String> {
+    // let flags: Vec<&Flag> = parse_flags(&args);
+    // Parse all flags and create a vector of all Command enum variants
+    let instruction = Instruction {
+        command: None,
+        option: None,
+    };
+
+    let final_instruction: Result<Instruction, String> = flags.clone().into_iter().map(Ok).fold_ok(
+        instruction,
+        |mut instruction_acc, parsed_flag| {
+            let Flag { name, .. } = parsed_flag;
+            match name.as_str() {
+                "--list" => instruction_acc.command = Some(Command::ListThemes),
+                "--current" => instruction_acc.command = Some(Command::CurrentTheme),
+                "--help" => instruction_acc.command = Some(Command::Help(bin_name.to_string())),
+                "--switch" => {
+                    let theme = parse_theme(&args, flags.clone());
+                    if !theme.is_empty() {
+                        instruction_acc.command = Some(Command::SwitchTheme(theme))
+                    } else {
+                        println!("ERROR: No theme found!");
+                    }
+                }
+                "--with-vim" => {
+                    // TODO: Fix cases like Instruction { command: Some(ListThemes), option: Some(SwitchWithVim) }
+                    instruction_acc.option = Some(CommandOption::SwitchWithVim);
+                }
+                _ => {
+                    if instruction_acc.command.is_some() {
+                        // Do nothing if we already found a command
+                    } else {
+                        println!("Should we do nothing or print an Error here?");
+                        // No command found so far, keep it a Noop
+                        instruction_acc.command = Some(Command::Noop)
+                    }
+                }
+            };
+            instruction_acc
+        },
+    );
+    final_instruction
 }
