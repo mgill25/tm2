@@ -1,6 +1,11 @@
 use crate::s;
 use crate::Flag;
+use crate::CURR_FLAG;
 use crate::FLAGS;
+use crate::HELP_FLAG;
+use crate::LIST_FLAG;
+use crate::SWITCH_FLAG;
+use crate::WITH_VIM_OPTION;
 use itertools::Itertools;
 
 #[derive(Debug)]
@@ -23,6 +28,10 @@ pub struct Instruction {
     pub option: Option<CommandOption>,
 }
 
+/// Parse Flags
+/// Inspects all the flags that we have and checks if we have any unsupported flag
+/// If so, we bail out early and print the Error.
+/// Otherwise, we return all the Supported Flags that we find
 pub fn parse_flags(args: &[String]) -> Result<Vec<&Flag>, String> {
     let supported_flags: Vec<String> = FLAGS.iter().map(|flag| flag.name.clone()).collect();
     let mut has_invalid_flag = false;
@@ -101,10 +110,16 @@ fn build_instruction(
         |mut instruction_acc, parsed_flag| {
             let Flag { name, .. } = parsed_flag;
             match name.as_str() {
-                "--list" => instruction_acc.command = Some(Command::ListThemes),
-                "--current" => instruction_acc.command = Some(Command::CurrentTheme),
-                "--help" => instruction_acc.command = Some(Command::Help(bin_name.to_string())),
-                "--switch" => {
+                flag_name if flag_name == LIST_FLAG.name => {
+                    instruction_acc.command = Some(Command::ListThemes)
+                }
+                flag_name if flag_name == CURR_FLAG.name => {
+                    instruction_acc.command = Some(Command::CurrentTheme)
+                }
+                flag_name if flag_name == HELP_FLAG.name => {
+                    instruction_acc.command = Some(Command::Help(bin_name.to_string()))
+                }
+                flag_name if flag_name == SWITCH_FLAG.name => {
                     let theme = parse_theme(&args, flags.clone());
                     if !theme.is_empty() {
                         instruction_acc.command = Some(Command::SwitchTheme(theme))
@@ -112,9 +127,21 @@ fn build_instruction(
                         println!("ERROR: No theme found!");
                     }
                 }
-                "--with-vim" => {
-                    // TODO: Fix cases like Instruction { command: Some(ListThemes), option: Some(SwitchWithVim) }
-                    instruction_acc.option = Some(CommandOption::SwitchWithVim);
+                flag_name if flag_name == WITH_VIM_OPTION.name => {
+                    // Only match --with-vim when we have seen the switch command
+                    match instruction_acc.command {
+                        Some(Command::SwitchTheme(_)) => {
+                            instruction_acc.option = Some(CommandOption::SwitchWithVim)
+                        }
+                        None => instruction_acc.option = Some(CommandOption::SwitchWithVim),
+                        // TODO: Bail out early when this error is encountered.
+                        Some(ref cmd) => {
+                            println!(
+                                "ERROR: --with-vim should not be used with {:?} command! Expect undefined behavior",
+                                &cmd
+                            );
+                        }
+                    }
                 }
                 _ => {
                     if instruction_acc.command.is_some() {
