@@ -7,6 +7,7 @@ use crate::LIST_FLAG;
 use crate::SWITCH_FLAG;
 use crate::WITH_VIM_OPTION;
 use itertools::Itertools;
+use log::{error, warn};
 
 #[derive(Debug)]
 pub enum Command {
@@ -124,7 +125,7 @@ fn build_instruction(
                     if !theme.is_empty() {
                         instruction_acc.command = Some(Command::SwitchTheme(theme))
                     } else {
-                        println!("ERROR: No theme found!");
+                        error!("No theme found!");
                     }
                 }
                 flag_name if flag_name == WITH_VIM_OPTION.name => {
@@ -136,8 +137,8 @@ fn build_instruction(
                         None => instruction_acc.option = Some(CommandOption::SwitchWithVim),
                         // TODO: Bail out early when this error is encountered.
                         Some(ref cmd) => {
-                            println!(
-                                "ERROR: --with-vim should not be used with {:?} command! Expect undefined behavior",
+                            warn!(
+                                "--with-vim should not be used with {:?} command! Ignoring it",
                                 &cmd
                             );
                         }
@@ -147,7 +148,7 @@ fn build_instruction(
                     if instruction_acc.command.is_some() {
                         // Do nothing if we already found a command
                     } else {
-                        println!("Should we do nothing or print an Error here?");
+                        warn!("Should we do nothing or print an Error here?");
                         // No command found so far, keep it a Noop
                         instruction_acc.command = Some(Command::Noop)
                     }

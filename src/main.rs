@@ -81,6 +81,7 @@ pub fn parse_theme(args: &[String], flags: Vec<&Flag>) -> String {
 }
 
 fn main() {
+    env_logger::init();
     let args: Vec<String> = env::args().collect();
     let bin_name = parse_bin(&args[0]);
     let instruction = instructions::parse_instructions(&args, bin_name);
