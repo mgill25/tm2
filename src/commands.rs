@@ -4,6 +4,7 @@ use crate::instructions::Instruction;
 use crate::s;
 use crate::FLAGS;
 use log::{debug, info};
+use std::fs;
 
 const DEFAULT_THEME_ROOT: &str = "/Users/gill/.config/alacritty/alacritty-theme/themes";
 
@@ -41,7 +42,6 @@ impl Handler {
 
     /// List the themes in the root theme directory
     fn list_themes(&self) {
-        use std::fs;
         // info!("This should list all the available themes!");
         // How do I list files in a directory using Rust?
         // exa -lah ~/.config/alacritty/alacritty-theme/themes

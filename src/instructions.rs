@@ -105,6 +105,9 @@ fn build_instruction(
         option: None,
     };
 
+    // TODO: This whole thing breaks without `flags.clone()`. Can we avoid a clone here? Should we?
+    // What is the _cost_ of doing a clone? How liberally should we use it? When should we
+    // avoid it?
     let final_instruction: Result<Instruction, String> = flags.clone().into_iter().map(Ok).fold_ok(
         instruction,
         |mut instruction_acc, parsed_flag| {
