@@ -40,10 +40,9 @@ pub fn parse_flags(args: &[String]) -> Result<Vec<&Flag>, String> {
     args.iter()
         .filter(|arg| arg.starts_with("--"))
         .for_each(|arg| {
-            if !supported_flags.contains(&arg) {
+            if !supported_flags.contains(arg) {
                 has_invalid_flag = true;
-                bad_flag = &arg;
-                return;
+                bad_flag = arg;
             }
         });
 
@@ -83,8 +82,8 @@ pub fn parse_instructions(args: &[String], bin_name: &str) -> Result<Instruction
             option: None,
         })
     } else {
-        match parse_flags(&args) {
-            Ok(flags) => build_instruction(&args, &bin_name, flags),
+        match parse_flags(args) {
+            Ok(flags) => build_instruction(args, bin_name, flags),
             Err(e) => Err(e),
         }
     }
@@ -121,7 +120,7 @@ fn build_instruction(
                     instruction_acc.command = Some(Command::Help(bin_name.to_string()))
                 }
                 flag_name if flag_name == SWITCH_FLAG.name => {
-                    let theme = parse_theme(&args, flags.clone());
+                    let theme = parse_theme(args, flags.clone());
                     if !theme.is_empty() {
                         instruction_acc.command = Some(Command::SwitchTheme(theme))
                     } else {

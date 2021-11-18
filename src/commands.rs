@@ -12,27 +12,24 @@ const DEFAULT_THEME_ROOT: &str = "/Users/gill/.config/alacritty/alacritty-theme/
 pub fn handle(ins: Instruction) {
     debug!("HANDLE INS = {:?}", ins);
     let handler = Handler {};
-    match ins {
-        Instruction { command, option } => {
-            debug!("\tCMD = {:?}", command);
-            debug!("\tOPT = {:?}", option);
-            match command {
-                Some(Command::Help(bin_name)) => handler.print_help(&bin_name),
-                Some(Command::ListThemes) => handler.list_themes(),
-                Some(Command::SwitchTheme(new_theme)) => match option {
-                    Some(CommandOption::SwitchWithVim) => handler.switch_with_vim(&new_theme),
-                    _ => handler.switch(&new_theme),
-                },
-                _ => {}
-            }
-        }
+    let Instruction { command, option } = ins;
+    debug!("\tCMD = {:?}", command);
+    debug!("\tOPT = {:?}", option);
+    match command {
+        Some(Command::Help(bin_name)) => handler.print_help(&bin_name),
+        Some(Command::ListThemes) => handler.list_themes(),
+        Some(Command::SwitchTheme(new_theme)) => match option {
+            Some(CommandOption::SwitchWithVim) => handler.switch_with_vim(&new_theme),
+            _ => handler.switch(&new_theme),
+        },
+        _ => {}
     }
 }
 
 struct Handler {}
 
 impl Handler {
-    pub fn print_help(&self, bin_name: &String) {
+    pub fn print_help(&self, bin_name: &str) {
         let topline = format!("{} [options] <parameter>\n", bin_name);
         let mut secondline = s("\nOPTIONS:\n");
         for flag in FLAGS.to_vec() {
@@ -56,17 +53,17 @@ impl Handler {
             let theme_fstr = theme_fname.to_str().unwrap();
 
             // split the string and remove the extension
-            let theme_name = theme_fstr.split(".").collect::<Vec<&str>>();
+            let theme_name = theme_fstr.split('.').collect::<Vec<&str>>();
             println!("{}", &theme_name[0]);
         }
     }
 
-    fn switch(&self, new_theme: &String) {
+    fn switch(&self, new_theme: &str) {
         info!("This should switch the terminal theme to {}", new_theme);
     }
 
-    fn switch_with_vim(&self, new_theme: &String) {
-        self.switch(&new_theme);
+    fn switch_with_vim(&self, new_theme: &str) {
+        self.switch(new_theme);
         info!("This will also try to change the same theme in neovim");
     }
 }
