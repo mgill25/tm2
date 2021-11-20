@@ -3,9 +3,12 @@ use crate::instructions::CommandOption;
 use crate::instructions::Instruction;
 use crate::s;
 use crate::FLAGS;
-use log::{debug, info};
+use log::{debug, info, error};
 use std::fs;
+use std::fs::File;
+use std::io::Read;
 
+const CURR_THEME_STATE_FILE: &str = "/Users/gill/.config/alacritty/.current_theme";
 const DEFAULT_THEME_ROOT: &str = "/Users/gill/.config/alacritty/alacritty-theme/themes";
 
 /// Global handler function for all Instructions
@@ -20,6 +23,7 @@ pub fn handle(ins: Instruction) {
         Some(Command::Help(bin_name)) => handler.print_help(&bin_name),
         Some(Command::ListThemes) => handler.list_themes(),
         Some(Command::SearchTheme(theme_name)) => handler.search_theme(&theme_name),
+        Some(Command::CurrentTheme) => handler.show_current_theme(),
         Some(Command::SwitchTheme(new_theme)) => match option {
             Some(CommandOption::SwitchWithVim) => handler.switch_with_vim(&new_theme),
             _ => handler.switch(&new_theme),
@@ -76,6 +80,23 @@ impl Handler {
         }
         if !found {
             println!("Not found");
+        }
+    }
+
+    fn show_current_theme(&self) {
+        let state_file_result = File::open(CURR_THEME_STATE_FILE);
+        match state_file_result {
+            Ok(mut state_file) => {
+                let mut file_contents = String::new();
+                if let Ok(_) = state_file.read_to_string(&mut file_contents) {
+                    if !file_contents.is_empty() {
+                        println!("{}", file_contents);
+                    }
+                }
+            }
+            Err(err) => {
+                error!("{}", err);
+            }
         }
     }
 
