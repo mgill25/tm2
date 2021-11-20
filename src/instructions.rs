@@ -1,16 +1,10 @@
-use crate::s;
-use crate::Flag;
-use crate::CURR_FLAG;
-use crate::FLAGS;
-use crate::HELP_FLAG;
-use crate::LIST_FLAG;
-use crate::SWITCH_FLAG;
-use crate::WITH_VIM_OPTION;
+use crate::*;
 use itertools::Itertools;
 use log::{error, warn};
 
 #[derive(Debug)]
 pub enum Command {
+    SearchTheme(String),
     ListThemes,
     CurrentTheme,
     SwitchTheme(String),
@@ -121,6 +115,14 @@ fn build_instruction(
                 }
                 flag_name if flag_name == HELP_FLAG.name => {
                     instruction_acc.command = Some(Command::Help(bin_name.to_string()))
+                }
+                flag_name if flag_name == SEARCH_FLAG.name => {
+                    let theme = parse_theme(args, flags.clone());
+                    if !theme.is_empty() {
+                        instruction_acc.command = Some(Command::SearchTheme(theme))
+                    } else {
+                        error!("Please provide a non-empty theme name!");
+                    }
                 }
                 flag_name if flag_name == SWITCH_FLAG.name => {
                     let theme = parse_theme(args, flags.clone());

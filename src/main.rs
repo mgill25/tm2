@@ -49,7 +49,12 @@ lazy_static! {
         Flag {
             name: s("--switch"),
             short: None,
-            desc: s("Switch the theme to a new one.\nSWITCH PARAMETER:\n\t<theme_name>")
+            desc: s("Switch the theme to a new one.\nPARAMETER:\n\t<theme_name>")
+        },
+        Flag {
+            name: s("--search"),
+            short: None,
+            desc: s("Search for a theme.\nPARAMETER:\n\t<theme_name>")
         },
     ];
     static ref HELP_FLAG: &'static Flag = &FLAGS[0];
@@ -57,6 +62,7 @@ lazy_static! {
     static ref CURR_FLAG: &'static Flag = &FLAGS[2];
     static ref WITH_VIM_OPTION: &'static Flag = &FLAGS[3];
     static ref SWITCH_FLAG: &'static Flag = &FLAGS[4];
+    static ref SEARCH_FLAG: &'static Flag = &FLAGS[5];
 }
 
 pub fn parse_flags(args: &[String]) -> Vec<&Flag> {

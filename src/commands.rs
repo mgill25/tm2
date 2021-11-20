@@ -19,6 +19,7 @@ pub fn handle(ins: Instruction) {
     match command {
         Some(Command::Help(bin_name)) => handler.print_help(&bin_name),
         Some(Command::ListThemes) => handler.list_themes(),
+        Some(Command::SearchTheme(theme_name)) => handler.search_theme(&theme_name),
         Some(Command::SwitchTheme(new_theme)) => match option {
             Some(CommandOption::SwitchWithVim) => handler.switch_with_vim(&new_theme),
             _ => handler.switch(&new_theme),
@@ -51,10 +52,30 @@ impl Handler {
         for theme in themes_dir {
             let theme_fname = theme.unwrap().file_name();
             let theme_fstr = theme_fname.to_str().unwrap();
-
             // split the string and remove the extension
             let theme_name = theme_fstr.split('.').collect::<Vec<&str>>();
             println!("{}", &theme_name[0]);
+        }
+    }
+
+    /// Search for a given theme by name (and later by regex/glob pattern)
+    /// Prints the name of the theme if a match is found.
+    /// Prints "not found" otherwise
+    fn search_theme(&self, theme_name: &str) {
+        let themes_filepath = DEFAULT_THEME_ROOT;
+        let themes_dir = fs::read_dir(themes_filepath).unwrap();
+        let mut found = false;
+        for curr_theme in themes_dir {
+            let curr_theme_fname = curr_theme.unwrap().file_name();
+            let curr_theme_fstr = curr_theme_fname.to_str().unwrap();
+            let curr_theme_name = curr_theme_fstr.split('.').collect::<Vec<&str>>()[0];
+            if s(curr_theme_name).starts_with(theme_name) {
+                println!("{}", curr_theme_name);
+                found = true;
+            }
+        }
+        if !found {
+            println!("Not found");
         }
     }
 
