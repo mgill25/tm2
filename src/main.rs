@@ -3,6 +3,7 @@ use std::env;
 #[macro_use]
 extern crate lazy_static;
 
+mod fileutils;
 mod commands;
 mod instructions;
 

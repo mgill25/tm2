@@ -1,15 +1,17 @@
+use crate::fileutils;
 use crate::instructions::Command;
 use crate::instructions::CommandOption;
 use crate::instructions::Instruction;
 use crate::s;
 use crate::FLAGS;
-use log::{debug, info, error};
+use log::{debug, info};
 use std::fs;
-use std::fs::File;
-use std::io::Read;
 
 const CURR_THEME_STATE_FILE: &str = "/Users/gill/.config/alacritty/.current_theme";
-const DEFAULT_THEME_ROOT: &str = "/Users/gill/.config/alacritty/alacritty-theme/themes";
+const DEFAULT_THEME_ROOT:    &str = "/Users/gill/.config/alacritty/alacritty-theme/themes";
+
+const ALACRITTY_CONFIG_BASE:  &str = "/Users/gill/.config/alacritty/base.yml";
+const ALACRITTY_CONFIG_FINAL: &str = "/Users/gill/.config/alacritty/alacritty.yml";
 
 /// Global handler function for all Instructions
 /// Invokes unique handlers for each specific command/option we get from the Instruction
@@ -84,24 +86,32 @@ impl Handler {
     }
 
     fn show_current_theme(&self) {
-        let state_file_result = File::open(CURR_THEME_STATE_FILE);
-        match state_file_result {
-            Ok(mut state_file) => {
-                let mut file_contents = String::new();
-                if let Ok(_) = state_file.read_to_string(&mut file_contents) {
-                    if !file_contents.is_empty() {
-                        println!("{}", file_contents);
-                    }
-                }
-            }
-            Err(err) => {
-                error!("{}", err);
-            }
-        }
+        let state_file_content = fileutils::read_from_file(CURR_THEME_STATE_FILE);
+        println!("{}", &state_file_content);
     }
 
+    /**
+     * (shell equivalent)
+     * NEW_THEME=$1
+     * rm "$HOME/.config/alacritty/alacritty.yml" && cat "$HOME/.config/alacritty/base.yml" "$HOME/.config/alacritty/alacritty-theme/themes/$NEW_THEME.yml" > ~/.config/alacritty/alacritty.yml
+     * # also write the current theme name to a file
+     * touch "$HOME/.config/alacritty/.current_theme"
+     * rm "$HOME/.config/alacritty/.current_theme" && echo "$NEW_THEME" > "$HOME/.config/alacritty/.current_theme"
+     */
     fn switch(&self, new_theme: &str) {
         info!("This should switch the terminal theme to {}", new_theme);
+        let new_theme_config_file = format!("/Users/gill/.config/alacritty/alacritty-theme/themes/{}.yml", new_theme);
+        if !fileutils::exists(new_theme_config_file.as_str()) {
+            println!("ERROR: Theme not found!");
+            return
+        }
+        fileutils::remove(ALACRITTY_CONFIG_FINAL);
+        let base_config_content = fileutils::read_from_file(ALACRITTY_CONFIG_BASE);
+        let new_theme_content = fileutils::read_from_file(new_theme_config_file.as_str());
+        let final_content = format!("{}{}", base_config_content, new_theme_content);
+        fileutils::write(ALACRITTY_CONFIG_FINAL, final_content);
+        fileutils::remove(CURR_THEME_STATE_FILE);
+        fileutils::write(CURR_THEME_STATE_FILE, s(new_theme));
     }
 
     fn switch_with_vim(&self, new_theme: &str) {
