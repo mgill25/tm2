@@ -17,6 +17,9 @@ This tool is just a small little wrapper that will allow theme changes.
 - Single match can be just a `let` statement, as per `Clippy` (variable pattern matching like Python)
 - `&String` can usually be converted to `&str`, and Clippy will remind you of this. So use him!
 - `fold_ok`: Does a `fold` over an input collection of `Option` types. `fold` has an accumulator. If there is a `None` that is encountered, we can choose to just skip over it.
+- `.is_ok()` can be used instead of redundant single-use `if let Ok(_)` statements.
+- There are only limited things we can do when defining `const` values:
+	- `calls in constants are limited to constant functions, tuple structs and tuple variants`
 
 ## Questions
 
@@ -24,4 +27,4 @@ This tool is just a small little wrapper that will allow theme changes.
 - When should we decide b/w using `&str` and `String` types?
 - `.clone()`: when to use and how to avoid.
 - `pattern-matching` with variables: possible if we have an `if pattern == variable` in our arms.
-
+- What is a `constant function` ?

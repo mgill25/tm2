@@ -3,14 +3,15 @@ use crate::instructions::Command;
 use crate::instructions::CommandOption;
 use crate::instructions::Instruction;
 use crate::s;
+use crate::vim;
 use crate::FLAGS;
 use log::{debug, info};
 use std::fs;
 
 const CURR_THEME_STATE_FILE: &str = "/Users/gill/.config/alacritty/.current_theme";
-const DEFAULT_THEME_ROOT:    &str = "/Users/gill/.config/alacritty/alacritty-theme/themes";
+const DEFAULT_THEME_ROOT: &str = "/Users/gill/.config/alacritty/alacritty-theme/themes";
 
-const ALACRITTY_CONFIG_BASE:  &str = "/Users/gill/.config/alacritty/base.yml";
+const ALACRITTY_CONFIG_BASE: &str = "/Users/gill/.config/alacritty/base.yml";
 const ALACRITTY_CONFIG_FINAL: &str = "/Users/gill/.config/alacritty/alacritty.yml";
 
 /// Global handler function for all Instructions
@@ -100,10 +101,13 @@ impl Handler {
      */
     fn switch(&self, new_theme: &str) {
         info!("This should switch the terminal theme to {}", new_theme);
-        let new_theme_config_file = format!("/Users/gill/.config/alacritty/alacritty-theme/themes/{}.yml", new_theme);
+        let new_theme_config_file = format!(
+            "/Users/gill/.config/alacritty/alacritty-theme/themes/{}.yml",
+            new_theme
+        );
         if !fileutils::exists(new_theme_config_file.as_str()) {
             println!("ERROR: Theme not found!");
-            return
+            return;
         }
         fileutils::remove(ALACRITTY_CONFIG_FINAL);
         let base_config_content = fileutils::read_from_file(ALACRITTY_CONFIG_BASE);
@@ -116,6 +120,6 @@ impl Handler {
 
     fn switch_with_vim(&self, new_theme: &str) {
         self.switch(new_theme);
-        info!("This will also try to change the same theme in neovim");
+        vim::switch_colorscheme();
     }
 }
