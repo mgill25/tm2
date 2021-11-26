@@ -1,4 +1,5 @@
 use std::env;
+use log::debug;
 
 #[macro_use]
 extern crate lazy_static;
@@ -35,12 +36,12 @@ lazy_static! {
         },
         Flag {
             name: s("--list"),
-            short: None,
+            short: Some(s("-l")),
             desc: s("Show the list of all available themes"),
         },
         Flag {
             name: s("--current"),
-            short: None,
+            short: Some(s("-c")),
             desc: s("Show the current theme")
         },
         Flag {
@@ -50,12 +51,12 @@ lazy_static! {
         },
         Flag {
             name: s("--switch"),
-            short: None,
+            short: Some(s("-s")),
             desc: s("Switch the theme to a new one.\nPARAMETER:\n\t<theme_name>")
         },
         Flag {
-            name: s("--search"),
-            short: None,
+            name: s("--find"),
+            short: Some(s("-f")),
             desc: s("Search for a theme.\nPARAMETER:\n\t<theme_name>")
         },
     ];
@@ -91,6 +92,7 @@ pub fn parse_theme(args: &[String], flags: Vec<&Flag>) -> String {
 fn main() {
     env_logger::init();
     let args: Vec<String> = env::args().collect();
+    debug!("args = {:?}", &args);
     let bin_name = parse_bin(&args[0]);
     let instruction = instructions::parse_instructions(&args, bin_name);
     match instruction {

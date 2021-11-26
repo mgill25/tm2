@@ -28,12 +28,23 @@ pub struct Instruction {
 /// If so, we bail out early and print the Error.
 /// Otherwise, we return all the Supported Flags that we find
 pub fn parse_flags(args: &[String]) -> Result<Vec<&Flag>, String> {
-    let supported_flags: Vec<String> = FLAGS.iter().map(|flag| flag.name.clone()).collect();
+    let mut supported_flags: Vec<String> = vec![];
+    FLAGS.iter()
+         .map(|flag| flag.name.clone())
+         .for_each(|f| supported_flags.push(f));
+    FLAGS.iter()
+            .filter(|f| f.short.is_some())
+            .map(|f| f.short.as_ref().unwrap().clone())
+            .for_each(|f| supported_flags.push(f));
+
+    // debug!("Supported Flags = {:?}", &supported_flags);
+
     let mut has_invalid_flag = false;
     let mut bad_flag = "";
     args.iter()
-        .filter(|arg| arg.starts_with("--"))
+        .filter(|arg| arg.starts_with("-"))
         .for_each(|arg| {
+            // debug!("Considering arg = {}", &arg);
             if !supported_flags.contains(arg) {
                 has_invalid_flag = true;
                 bad_flag = arg;
@@ -41,7 +52,12 @@ pub fn parse_flags(args: &[String]) -> Result<Vec<&Flag>, String> {
         });
 
     if !has_invalid_flag {
-        Ok(FLAGS.iter().filter(|f| args.contains(&f.name)).collect())
+        Ok(
+            FLAGS.iter()
+                 .filter(|f| args.contains(&f.name) ||
+                    (f.short.is_some() && args.contains(&f.short.as_ref().unwrap()))
+                 ).collect()
+        )
     } else {
         Err(format!("Invalid Flag: {}", bad_flag))
     }
@@ -102,21 +118,26 @@ fn build_instruction(
     // TODO: This whole thing breaks without `flags.clone()`. Can we avoid a clone here? Should we?
     // What is the _cost_ of doing a clone? How liberally should we use it? When should we
     // avoid it?
+    // debug!("{:?}", &flags);
     let final_instruction: Result<Instruction, String> = flags.clone().into_iter().map(Ok).fold_ok(
         instruction,
         |mut instruction_acc, parsed_flag| {
             let Flag { name, .. } = parsed_flag;
             match name.as_str() {
-                flag_name if flag_name == LIST_FLAG.name => {
+                flag_name if flag_name == LIST_FLAG.name ||
+                flag_name == LIST_FLAG.short.as_ref().unwrap() => {
                     instruction_acc.command = Some(Command::ListThemes)
                 }
-                flag_name if flag_name == CURR_FLAG.name => {
+                flag_name if flag_name == CURR_FLAG.name ||
+                flag_name == CURR_FLAG.short.as_ref().unwrap() => {
                     instruction_acc.command = Some(Command::CurrentTheme)
                 }
-                flag_name if flag_name == HELP_FLAG.name => {
+                flag_name if flag_name == HELP_FLAG.name ||
+                flag_name == HELP_FLAG.short.as_ref().unwrap() => {
                     instruction_acc.command = Some(Command::Help(bin_name.to_string()))
                 }
-                flag_name if flag_name == SEARCH_FLAG.name => {
+                flag_name if flag_name == SEARCH_FLAG.name ||
+                flag_name == SEARCH_FLAG.short.as_ref().unwrap() => {
                     let theme = parse_theme(args, flags.clone());
                     if !theme.is_empty() {
                         instruction_acc.command = Some(Command::SearchTheme(theme))
@@ -124,7 +145,8 @@ fn build_instruction(
                         error!("Please provide a non-empty theme name!");
                     }
                 }
-                flag_name if flag_name == SWITCH_FLAG.name => {
+                flag_name if flag_name == SWITCH_FLAG.name ||
+                flag_name == SWITCH_FLAG.short.as_ref().unwrap() => {
                     let theme = parse_theme(args, flags.clone());
                     if !theme.is_empty() {
                         instruction_acc.command = Some(Command::SwitchTheme(theme))

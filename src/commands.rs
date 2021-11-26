@@ -5,7 +5,7 @@ use crate::instructions::Instruction;
 use crate::s;
 use crate::vim;
 use crate::FLAGS;
-use log::{debug, info};
+use log::debug;
 use std::fs;
 
 const CURR_THEME_STATE_FILE: &str = "/Users/gill/.config/alacritty/.current_theme";
@@ -42,7 +42,12 @@ impl Handler {
         let topline = format!("{} [options] <parameter>\n", bin_name);
         let mut secondline = s("\nOPTIONS:\n");
         for flag in FLAGS.to_vec() {
-            secondline.push_str(format!("\t{}: \t {}\n", flag.name, flag.desc).as_str());
+            if flag.short.is_some() {
+                let fshort= flag.short.unwrap();
+                secondline.push_str(format!("\t{} {}: \t {}\n", fshort, flag.name, flag.desc).as_str());
+            } else {
+                secondline.push_str(format!("\t   {}: \t {}\n", flag.name, flag.desc).as_str());
+            }
         }
         let usage = format!("{}{}", topline, secondline);
         println!("Usage:\n\t{}", usage);
@@ -100,7 +105,6 @@ impl Handler {
      * rm "$HOME/.config/alacritty/.current_theme" && echo "$NEW_THEME" > "$HOME/.config/alacritty/.current_theme"
      */
     fn switch(&self, new_theme: &str) {
-        info!("This should switch the terminal theme to {}", new_theme);
         let new_theme_config_file = format!(
             "/Users/gill/.config/alacritty/alacritty-theme/themes/{}.yml",
             new_theme
