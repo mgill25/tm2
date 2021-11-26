@@ -45,14 +45,14 @@ lazy_static! {
             desc: s("Show the current theme")
         },
         Flag {
-            name: s("--with-vim"),
-            short: None,
-            desc: s("Also tries to set the same colorscheme in vim")
-        },
-        Flag {
             name: s("--switch"),
             short: Some(s("-s")),
             desc: s("Switch the theme to a new one.")
+        },
+        Flag {
+            name: s("--with-vim"),
+            short: None,
+            desc: s("Also tries to set the same colorscheme in vim")
         },
         Flag {
             name: s("--find"),
@@ -63,8 +63,8 @@ lazy_static! {
     static ref HELP_FLAG: &'static Flag = &FLAGS[0];
     static ref LIST_FLAG: &'static Flag = &FLAGS[1];
     static ref CURR_FLAG: &'static Flag = &FLAGS[2];
-    static ref WITH_VIM_OPTION: &'static Flag = &FLAGS[3];
-    static ref SWITCH_FLAG: &'static Flag = &FLAGS[4];
+    static ref SWITCH_FLAG: &'static Flag = &FLAGS[3];
+    static ref WITH_VIM_OPTION: &'static Flag = &FLAGS[4];
     static ref SEARCH_FLAG: &'static Flag = &FLAGS[5];
 }
 
