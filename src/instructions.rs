@@ -31,15 +31,11 @@ pub fn parse_flags(args: &[String]) -> Result<Vec<&Flag>, String> {
     let mut supported_flags: Vec<String> = vec![];
     FLAGS.iter()
          .flat_map(|flag| {
-            let mut v = vec![];
+            let mut v = vec![flag.name.clone()];
             if flag.short.is_some() {
-                v.push(flag.name.clone());
                 v.push(flag.short.as_ref().unwrap().clone());
-                v
-            } else {
-                v.push(flag.name.clone());
-                v
             }
+            v
          })
          .for_each(|f| supported_flags.push(f));
 
