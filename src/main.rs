@@ -52,12 +52,12 @@ lazy_static! {
         Flag {
             name: s("--switch"),
             short: Some(s("-s")),
-            desc: s("Switch the theme to a new one.\nPARAMETER:\n\t<theme_name>")
+            desc: s("Switch the theme to a new one.")
         },
         Flag {
             name: s("--find"),
             short: Some(s("-f")),
-            desc: s("Search for a theme.\nPARAMETER:\n\t<theme_name>")
+            desc: s("Search for a theme.\n\nPARAMETER:\n\t<theme_name>")
         },
     ];
     static ref HELP_FLAG: &'static Flag = &FLAGS[0];
