@@ -30,12 +30,18 @@ pub struct Instruction {
 pub fn parse_flags(args: &[String]) -> Result<Vec<&Flag>, String> {
     let mut supported_flags: Vec<String> = vec![];
     FLAGS.iter()
-         .map(|flag| flag.name.clone())
+         .flat_map(|flag| {
+            let mut v = vec![];
+            if flag.short.is_some() {
+                v.push(flag.name.clone());
+                v.push(flag.short.as_ref().unwrap().clone());
+                v
+            } else {
+                v.push(flag.name.clone());
+                v
+            }
+         })
          .for_each(|f| supported_flags.push(f));
-    FLAGS.iter()
-            .filter(|f| f.short.is_some())
-            .map(|f| f.short.as_ref().unwrap().clone())
-            .for_each(|f| supported_flags.push(f));
 
     // debug!("Supported Flags = {:?}", &supported_flags);
 
