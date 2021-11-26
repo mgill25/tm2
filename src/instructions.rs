@@ -105,6 +105,8 @@ pub fn parse_instructions(args: &[String], bin_name: &str) -> Result<Instruction
     }
 }
 
+/// Checks if a given argument passed as a flag actually matches
+/// our internal flag objects - either full name or the short
 fn is_valid_flag(flag_arg: &str, flag_obj: &'static Flag) -> bool {
     flag_arg == flag_obj.name ||
     flag_arg == flag_obj.short.as_ref().unwrap()
