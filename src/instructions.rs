@@ -42,7 +42,7 @@ pub fn parse_flags(args: &[String]) -> Result<Vec<&Flag>, String> {
     let mut has_invalid_flag = false;
     let mut bad_flag = "";
     args.iter()
-        .filter(|arg| arg.starts_with("-"))
+        .filter(|arg| arg.starts_with('-'))
         .for_each(|arg| {
             // debug!("Considering arg = {}", &arg);
             if !supported_flags.contains(arg) {
@@ -55,7 +55,7 @@ pub fn parse_flags(args: &[String]) -> Result<Vec<&Flag>, String> {
         Ok(
             FLAGS.iter()
                  .filter(|f| args.contains(&f.name) ||
-                    (f.short.is_some() && args.contains(&f.short.as_ref().unwrap()))
+                    (f.short.is_some() && args.contains(f.short.as_ref().unwrap()))
                  ).collect()
         )
     } else {
@@ -99,6 +99,11 @@ pub fn parse_instructions(args: &[String], bin_name: &str) -> Result<Instruction
     }
 }
 
+fn is_valid_flag(flag_arg: &str, flag_obj: &'static Flag) -> bool {
+    flag_arg == flag_obj.name ||
+    flag_arg == flag_obj.short.as_ref().unwrap()
+}
+
 /// Build an Instruction
 /// This uses all the information we have about the Flags we have parsed
 /// and looks at any additional things we need from the args (like values and options)
@@ -124,20 +129,16 @@ fn build_instruction(
         |mut instruction_acc, parsed_flag| {
             let Flag { name, .. } = parsed_flag;
             match name.as_str() {
-                flag_name if flag_name == LIST_FLAG.name ||
-                flag_name == LIST_FLAG.short.as_ref().unwrap() => {
+                flag_name if is_valid_flag(flag_name, &LIST_FLAG) => {
                     instruction_acc.command = Some(Command::ListThemes)
                 }
-                flag_name if flag_name == CURR_FLAG.name ||
-                flag_name == CURR_FLAG.short.as_ref().unwrap() => {
+                flag_name if is_valid_flag(flag_name, &CURR_FLAG) => {
                     instruction_acc.command = Some(Command::CurrentTheme)
                 }
-                flag_name if flag_name == HELP_FLAG.name ||
-                flag_name == HELP_FLAG.short.as_ref().unwrap() => {
+                flag_name if is_valid_flag(flag_name, &HELP_FLAG) => {
                     instruction_acc.command = Some(Command::Help(bin_name.to_string()))
                 }
-                flag_name if flag_name == SEARCH_FLAG.name ||
-                flag_name == SEARCH_FLAG.short.as_ref().unwrap() => {
+                flag_name if is_valid_flag(flag_name, &SEARCH_FLAG) => {
                     let theme = parse_theme(args, flags.clone());
                     if !theme.is_empty() {
                         instruction_acc.command = Some(Command::SearchTheme(theme))
@@ -145,8 +146,7 @@ fn build_instruction(
                         error!("Please provide a non-empty theme name!");
                     }
                 }
-                flag_name if flag_name == SWITCH_FLAG.name ||
-                flag_name == SWITCH_FLAG.short.as_ref().unwrap() => {
+                flag_name if is_valid_flag(flag_name, &SWITCH_FLAG) => {
                     let theme = parse_theme(args, flags.clone());
                     if !theme.is_empty() {
                         instruction_acc.command = Some(Command::SwitchTheme(theme))
