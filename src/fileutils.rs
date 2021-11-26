@@ -1,6 +1,6 @@
 use crate::s;
 use log::error;
-use std::{fs::File, io::Read};
+use std::{fs::File, io::{Read, Write}};
 
 pub fn write(filepath: &str, data: String) -> bool {
     std::fs::write(filepath, data).is_ok()
@@ -31,4 +31,19 @@ pub fn read_from_file(filepath: &str) -> String {
             s("")
         }
     }
+}
+
+/**
+ * Substitute inside a file: change the string source to target.
+ * Reads, replaces and then overwrites the file.
+ */
+pub fn sed(filepath: &str, source: &str, target: &str) -> Result<(), std::io::Error> {
+    let mut src = File::open(&filepath)?;
+    let mut file_content = String::new();
+    src.read_to_string(&mut file_content)?;
+    drop(src); // close the file early (why?)
+    let new_content = file_content.replace(source, target);
+    let mut dst = File::create(&filepath)?;
+    dst.write_all(new_content.as_bytes())?;
+    Ok(())
 }

@@ -120,6 +120,6 @@ impl Handler {
 
     fn switch_with_vim(&self, new_theme: &str) {
         self.switch(new_theme);
-        vim::switch_colorscheme();
+        vim::switch_colorscheme(new_theme);
     }
 }
